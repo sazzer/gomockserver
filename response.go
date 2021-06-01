@@ -24,7 +24,7 @@ func (r Response) Write(w http.ResponseWriter) {
 	_, _ = w.Write(r.Body)
 }
 
-// ResponeBuilder is a means to contribute to the response to send to the client.
+// ResponseBuilder is a means to contribute to the response to send to the client.
 type ResponseBuilder interface {
 	// PopulateResponse is called to allow the builder to update any parts of the response struct.
 	PopulateResponse(r *Response, req *http.Request)
