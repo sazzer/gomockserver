@@ -3,6 +3,7 @@ package gomockserver_test
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"testing"
@@ -118,6 +119,83 @@ func TestMatchRequestDoesntMatchMethod(t *testing.T) {
 	defer resp.Body.Close()
 
 	is.Equal(resp.StatusCode, http.StatusNotFound)
+}
+
+func TestCustomResponseStatus(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+		RespondsWith(gomockserver.ResponseStatus(http.StatusAccepted))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusAccepted)
+}
+
+func TestCustomResponseHeaders(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+		RespondsWith(gomockserver.ResponseSetHeader("content-type", "application/json"),
+			gomockserver.ResponseAppendHeader("X-Test", "1"),
+			gomockserver.ResponseAppendHeader("X-Test", "2"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+	is.Equal(resp.Header.Get("content-type"), "application/json")
+	is.Equal(resp.Header.Values("X-Test"), []string{"1", "2"})
+}
+
+func TestCustomResponseBody(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+		RespondsWith(gomockserver.ResponseBody([]byte("Hello")))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	is.NoErr(err)
+	is.Equal(body, []byte("Hello"))
+}
+
+func TestCustomResponseBodyJSON(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+		RespondsWith(gomockserver.ResponseJSON("Hello"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+	is.Equal(resp.Header.Get("content-type"), "application/json")
+
+	body, err := ioutil.ReadAll(resp.Body)
+	is.NoErr(err)
+	is.Equal(body, []byte("\"Hello\""))
 }
 
 func makeRequest(t *testing.T, method, url string) *http.Response {

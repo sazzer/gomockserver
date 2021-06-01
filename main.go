@@ -12,7 +12,7 @@ type MockServer interface {
 	// URL will generate a URL representing the mock server. This includes the scheme, host and post of the server.
 	URL() string
 	// Matches will record a new match against the server that will potentially process any incoming requests.
-	Matches(...MatchRule) Match
+	Matches(...MatchRule) *Match
 }
 
 // New will create a new mock server ready for use in tests.
