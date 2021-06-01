@@ -75,14 +75,14 @@ func TestNoRoutes(t *testing.T) {
 	}
 }
 
-func TestMatchURLMatches(t *testing.T) {
+func TestMatchRequestMatches(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)
 
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchURL("/testing/abc"))
+	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc"))
 
 	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
 	defer resp.Body.Close()
@@ -90,14 +90,29 @@ func TestMatchURLMatches(t *testing.T) {
 	is.Equal(resp.StatusCode, http.StatusOK)
 }
 
-func TestMatchURLDoesntMatch(t *testing.T) {
+func TestMatchRequestDoesntMatchURL(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)
 
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchURL("/testing/abc"))
+	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/wrong", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusNotFound)
+}
+
+func TestMatchRequestDoesntMatchMethod(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchRequest("POST", "/testing/abc"))
 
 	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/wrong", server.URL()))
 	defer resp.Body.Close()
