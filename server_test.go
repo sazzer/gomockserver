@@ -2,6 +2,7 @@ package gomockserver_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"regexp"
 	"testing"
@@ -72,6 +73,36 @@ func TestNoRoutes(t *testing.T) {
 			is.Equal(resp.StatusCode, http.StatusNotFound)
 		})
 	}
+}
+
+func TestMatchURLMatches(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchURL("/testing/abc"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchURLDoesntMatch(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchURL("/testing/abc"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/wrong", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
 func makeRequest(t *testing.T, method, url string) *http.Response {

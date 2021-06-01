@@ -25,3 +25,13 @@ func (s *server) URL() string {
 
 	return s.server.URL
 }
+
+func (s *server) Matches(rules ...MatchRule) Match {
+	match := Match{
+		rules: rules,
+	}
+
+	s.handler.matches = append(s.handler.matches, match)
+
+	return match
+}
