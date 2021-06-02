@@ -11,6 +11,21 @@ type server struct {
 	server  *httptest.Server
 }
 
+// New will create a new mock server ready for use in tests.
+func New(t *testing.T) MockServer {
+	t.Helper()
+
+	handler := handler{
+		t: t,
+	}
+
+	return &server{
+		t:       t,
+		handler: &handler,
+		server:  httptest.NewServer(&handler),
+	}
+}
+
 func (s *server) Close() {
 	if s.server != nil {
 		s.server.Close()
