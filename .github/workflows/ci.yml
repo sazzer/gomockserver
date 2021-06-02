@@ -4,7 +4,7 @@ on:
   push:
 
 jobs:
-  lint-service:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,7 +15,7 @@ jobs:
         with:
           version: v1.40
 
-  test-service:
+  test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,4 +29,20 @@ jobs:
           go-version: ${{ matrix.go_version }}
 
       - name: Unit Tests
-        run: go test -v ./...
+        run: go test -v -coverprofile=profile.cov ./...
+
+      - name: Send coverage
+        uses: shogo82148/actions-goveralls@v1
+        with:
+          path-to-profile: profile.cov
+          flag-name: Go-${{ matrix.go_version }}
+          parallel: true
+
+  # notifies that all test jobs are finished.
+  finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: shogo82148/actions-goveralls@v1
+        with:
+          parallel-finished: true
