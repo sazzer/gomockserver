@@ -1,2 +1,4 @@
 github.com/matryer/is v1.4.0 h1:sosSmIWwkYITGrxZ25ULNDeKiMNzFSr4V/eqBQP0PeE=
 github.com/matryer/is v1.4.0/go.mod h1:8I/i5uYgLzgsgEloJE1U6xx5HkBQpAZvepWuujKwMRU=
+github.com/nsf/jsondiff v0.0.0-20210303162244-6ea32392771e h1:S+/ptYdZtpK/MDstwCyt+ZHdXEpz86RJZ5gyZU4txJY=
+github.com/nsf/jsondiff v0.0.0-20210303162244-6ea32392771e/go.mod h1:uFMI8w+ref4v2r9jz+c9i1IfIttS/OkmLfrk1jne5hs=

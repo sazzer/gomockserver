@@ -1,6 +1,7 @@
 package gomockserver_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io/ioutil"
@@ -143,6 +144,153 @@ func TestMatchHeader(t *testing.T) {
 	defer resp.Body.Close()
 
 	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchJSONBodyFullIdentical(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONFull(`{"a": 1, "b": {"c": 2, "d": "e"}}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchJSONBodyFullReordered(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONFull(`{"b": {"d": "e", "c": 2}, "a": 1}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchJSONBodyFullMissingKey(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONFull(`{"b": {"d": "e", "c": 2}}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusNotFound)
+}
+
+func TestMatchJSONBodyCompatibleIdentical(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONCompatible(`{"a": 1, "b": {"c": 2, "d": "e"}}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchJSONBodyCompatibleReordered(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONCompatible(`{"b": {"d": "e", "c": 2}, "a": 1}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchJSONBodyCompatibleMissingKey(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONCompatible(`{"b": {"d": "e", "c": 2}}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
+func TestMatchJSONBodyCompatibleExtraKey(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchJSONCompatible(`{"a": 1, "b": {"d": "e", "c": 2}}`))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
+		bytes.NewReader([]byte(`{"b": {"c": 2, "d": "e"}}`)))
+	is.NoErr(err)
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
 func TestCustomResponseStatus(t *testing.T) {

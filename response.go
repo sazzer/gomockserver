@@ -1,7 +1,6 @@
 package gomockserver
 
 import (
-	"encoding/json"
 	"net/http"
 )
 
@@ -72,14 +71,4 @@ func ResponseBody(data []byte) ResponseBuilder {
 	return ResponseBuilderFunc(func(r *Response, req *http.Request) {
 		r.Body = data
 	})
-}
-
-// ResponseJSON will encode the provided value as JSON and use it as the response, also setting the content-type header.
-func ResponseJSON(data interface{}) ResponseBuilder {
-	bytes, _ := json.Marshal(data)
-
-	return ResponseBuilders{
-		ResponseSetHeader("content-type", "application/json"),
-		ResponseBody(bytes),
-	}
 }
