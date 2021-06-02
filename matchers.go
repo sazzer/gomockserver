@@ -52,3 +52,19 @@ func MatchRequest(method, url string) MatchRule {
 		MatchURL(url),
 	}
 }
+
+// MatchHeader builds a `MatchRule` to check if the given header is present and has the given value.
+// If the header is repeated then only one of the repeated values needs to have the provided value.
+func MatchHeader(name, value string) MatchRule {
+	return MatchRuleFunc(func(r *http.Request) bool {
+		values := r.Header.Values(name)
+
+		for _, v := range values {
+			if v == value {
+				return true
+			}
+		}
+
+		return false
+	})
+}

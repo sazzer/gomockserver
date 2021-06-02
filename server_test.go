@@ -121,6 +121,30 @@ func TestMatchRequestDoesntMatchMethod(t *testing.T) {
 	is.Equal(resp.StatusCode, http.StatusNotFound)
 }
 
+func TestMatchHeader(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Matches(gomockserver.MatchHeader("X-Test", "2"))
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(), nil)
+	is.NoErr(err)
+
+	req.Header.Add("X-Test", "1")
+	req.Header.Add("X-Test", "2")
+	req.Header.Add("X-Test", "3")
+
+	resp, err := http.DefaultClient.Do(req)
+	is.NoErr(err)
+
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+}
+
 func TestCustomResponseStatus(t *testing.T) {
 	t.Parallel()
 	is := is.New(t)
