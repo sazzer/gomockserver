@@ -34,8 +34,9 @@ The call to `server.Matches()` will take a number of `MatchRule` instances. A `M
 
 Standard rules that can be configured are:
 
-- `MatchURL` - Matches the full incoming URL
 - `MatchMethod` - Matches the HTTP Method
+- `MatchURLPath` - Matches the full incoming URL
+- `MatchURLQuery` - Matches a query parameter with a specific value
 - `MatchRequest` - Matches both the HTTP Method and the URL
 - `MatchHeader` - Matches a header name with a specific value
 - `MatchJSONFull` - Matches the request body in full against a JSON document
