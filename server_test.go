@@ -73,6 +73,8 @@ func TestNoRoutes(t *testing.T) {
 			defer resp.Body.Close()
 
 			is.Equal(resp.StatusCode, http.StatusNotFound)
+
+			is.Equal(server.UnmatchedCount(), 1)
 		})
 	}
 }
@@ -84,12 +86,15 @@ func TestMatchRequestMatches(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc"))
+	match := server.Matches(gomockserver.MatchRequest("GET", "/testing/abc"))
 
 	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
 	defer resp.Body.Close()
 
 	is.Equal(resp.StatusCode, http.StatusOK)
+
+	is.Equal(server.UnmatchedCount(), 0)
+	is.Equal(match.Count(), 1)
 }
 
 func TestMatchRequestDoesntMatchURL(t *testing.T) {
@@ -356,7 +361,7 @@ func TestCustomResponseBodyJSON(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+	match := server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
 		RespondsWith(gomockserver.ResponseJSON("Hello"))
 
 	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
@@ -368,6 +373,62 @@ func TestCustomResponseBodyJSON(t *testing.T) {
 	body, err := ioutil.ReadAll(resp.Body)
 	is.NoErr(err)
 	is.Equal(body, []byte("\"Hello\""))
+
+	is.Equal(match.Count(), 1)
+}
+
+func TestMatchQuery(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	match := server.Matches(gomockserver.MatchRequest("GET", "/testing"), gomockserver.MatchURLQuery("answer", "42"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing?answer=42", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+
+	is.Equal(server.UnmatchedCount(), 0)
+	is.Equal(match.Count(), 1)
+}
+
+func TestMatchQueryWrongValue(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	match := server.Matches(gomockserver.MatchRequest("GET", "/testing"), gomockserver.MatchURLQuery("answer", "42"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing?answer=41", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusNotFound)
+
+	is.Equal(server.UnmatchedCount(), 1)
+	is.Equal(match.Count(), 0)
+}
+
+func TestMatchQueryRepeated(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	match := server.Matches(gomockserver.MatchRequest("GET", "/testing"), gomockserver.MatchURLQuery("answer", "42"))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing?answer=123&answer=42", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+
+	is.Equal(server.UnmatchedCount(), 0)
+	is.Equal(match.Count(), 1)
 }
 
 func makeRequest(t *testing.T, method, url string) *http.Response {

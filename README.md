@@ -24,8 +24,8 @@ Once created, the server will handle all incoming requests to it. The URL can be
 Once set up, the server can be configured to match incoming requests and return responses to them. For example, the following will handle a call to `GET /testing/abc` and return an `application/json` response with a body of `"Hello"`:
 
 ```go
-	server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
-		RespondsWith(gomockserver.ResponseJSON("Hello"))
+server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+	RespondsWith(gomockserver.ResponseJSON("Hello"))
 ```
 
 ### Matches
@@ -34,8 +34,9 @@ The call to `server.Matches()` will take a number of `MatchRule` instances. A `M
 
 Standard rules that can be configured are:
 
-- `MatchURL` - Matches the full incoming URL
 - `MatchMethod` - Matches the HTTP Method
+- `MatchURLPath` - Matches the full incoming URL
+- `MatchURLQuery` - Matches a query parameter with a specific value
 - `MatchRequest` - Matches both the HTTP Method and the URL
 - `MatchHeader` - Matches a header name with a specific value
 - `MatchJSONFull` - Matches the request body in full against a JSON document
@@ -64,6 +65,27 @@ Every request that is received by the mock server is compared to every `Match` t
 You can configure as many different `Match`es on the server as you want, but every request will only ever match at most one.
 
 Any incoming requests that do not match a configured `Match` will return an `HTTP 404 Not Found`.
+
+## Counting Requests
+
+Go Mock Server will keep track of the number of times every `Match` has been used to respond to a request. This can be used in tests to assert that a given request was made the correct number of times:
+
+```go
+match := server.Matches(gomockserver.MatchRequest("GET", "/testing/abc")).
+	RespondsWith(gomockserver.ResponseJSON("Hello"))
+
+// Run tests
+
+is.Equal(match.Count(), 1)
+```
+
+We also keep track of the number of times we handled unmatched requests, in case that's interesting. Most often that will be used to assert that this was zero - i.e. that all the requests that we handled were matched:
+
+```go
+// Run tsts
+
+is.Equal(server.UnmatchedCount(), 0)
+```
 
 ## Examples
 

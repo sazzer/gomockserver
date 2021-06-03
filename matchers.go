@@ -1,6 +1,9 @@
 package gomockserver
 
-import "net/http"
+import (
+	"net/http"
+	"net/url"
+)
 
 // MatchRule represents a rule to match against to see if a request should be processed.
 type MatchRule interface {
@@ -30,11 +33,26 @@ func (m MatchRules) Matches(r *http.Request) bool {
 	return true
 }
 
-// MatchURL builds a `MatchRule` to check if the URL of the request matches the one provided.
-// Note that this does a complete match, not a partial one.
-func MatchURL(url string) MatchRule {
+func matchURL(matcher func(url.URL) bool) MatchRule {
 	return MatchRuleFunc(func(r *http.Request) bool {
-		return r.RequestURI == url
+		uri, err := url.ParseRequestURI(r.RequestURI)
+		if err != nil {
+			return false
+		}
+
+		if uri == nil {
+			return false
+		}
+
+		return matcher(*uri)
+	})
+}
+
+// MatchURLPath builds a `MatchRule` to check if the URL Path of the request matches the one provided.
+// Note that this does a complete match, not a partial one.
+func MatchURLPath(expected string) MatchRule {
+	return matchURL(func(uri url.URL) bool {
+		return uri.EscapedPath() == expected
 	})
 }
 
@@ -49,7 +67,7 @@ func MatchMethod(method string) MatchRule {
 func MatchRequest(method, url string) MatchRule {
 	return MatchRules{
 		MatchMethod(method),
-		MatchURL(url),
+		MatchURLPath(url),
 	}
 }
 
@@ -62,6 +80,24 @@ func MatchHeader(name, value string) MatchRule {
 		for _, v := range values {
 			if v == value {
 				return true
+			}
+		}
+
+		return false
+	})
+}
+
+// MatchURLQuery builds a `MatchRule` to check if a query parameter is present with the given name and value.
+// If the query parameter is repeated then only one of the repeated values needs to have the provided value.
+func MatchURLQuery(name, value string) MatchRule {
+	return matchURL(func(uri url.URL) bool {
+		for n, values := range uri.Query() {
+			if name == n {
+				for _, v := range values {
+					if value == v {
+						return true
+					}
+				}
 			}
 		}
 

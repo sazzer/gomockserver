@@ -1,16 +1,22 @@
 package gomockserver
 
 import (
+	"fmt"
 	"net/http"
+	"testing"
 )
 
 type handler struct {
-	matches []*Match
+	t              *testing.T
+	matches        []*Match
+	unmatchedCount int
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, match := range h.matches {
 		if match.Matches(r) {
+			match.count++
+
 			response := Response{
 				Status:  http.StatusOK,
 				Headers: http.Header{},
@@ -23,6 +29,18 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	requestOutput := fmt.Sprintf("%s %s", r.Method, r.RequestURI)
+
+	for name, values := range r.Header {
+		for _, value := range values {
+			requestOutput = fmt.Sprintf("%s\n%s: %s", requestOutput, name, value)
+		}
+	}
+
+	h.t.Logf("Unmatched request: %s", requestOutput)
+
+	h.unmatchedCount++
 
 	http.NotFound(w, r)
 }
