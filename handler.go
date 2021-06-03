@@ -15,6 +15,8 @@ type handler struct {
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	for _, match := range h.matches {
 		if match.Matches(r) {
+			match.count++
+
 			response := Response{
 				Status:  http.StatusOK,
 				Headers: http.Header{},
