@@ -73,6 +73,8 @@ func TestNoRoutes(t *testing.T) {
 			defer resp.Body.Close()
 
 			is.Equal(resp.StatusCode, http.StatusNotFound)
+
+			is.Equal(server.UnmatchedCount(), 1)
 		})
 	}
 }
@@ -90,6 +92,8 @@ func TestMatchRequestMatches(t *testing.T) {
 	defer resp.Body.Close()
 
 	is.Equal(resp.StatusCode, http.StatusOK)
+
+	is.Equal(server.UnmatchedCount(), 0)
 }
 
 func TestMatchRequestDoesntMatchURL(t *testing.T) {

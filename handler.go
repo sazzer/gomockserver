@@ -7,8 +7,9 @@ import (
 )
 
 type handler struct {
-	t       *testing.T
-	matches []*Match
+	t              *testing.T
+	matches        []*Match
+	unmatchedCount int
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -35,7 +36,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	h.t.Logf(" Unmatched request: %s", requestOutput)
+	h.t.Logf("Unmatched request: %s", requestOutput)
+
+	h.unmatchedCount++
 
 	http.NotFound(w, r)
 }

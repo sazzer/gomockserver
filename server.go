@@ -16,7 +16,8 @@ func New(t *testing.T) MockServer {
 	t.Helper()
 
 	handler := handler{
-		t: t,
+		t:              t,
+		unmatchedCount: 0,
 	}
 
 	return &server{
@@ -49,4 +50,8 @@ func (s *server) Matches(rules ...MatchRule) *Match {
 	s.handler.matches = append(s.handler.matches, match)
 
 	return match
+}
+
+func (s *server) UnmatchedCount() int {
+	return s.handler.unmatchedCount
 }

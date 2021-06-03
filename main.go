@@ -8,4 +8,6 @@ type MockServer interface {
 	URL() string
 	// Matches will record a new match against the server that will potentially process any incoming requests.
 	Matches(...MatchRule) *Match
+	// UnmatchedCount will return the number of times a request has been handmed and not matched.
+	UnmatchedCount() int
 }
