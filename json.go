@@ -18,14 +18,16 @@ func ResponseJSON(data interface{}) ResponseBuilder {
 	}
 }
 
-func matchJSON(r *http.Request, expected string) jsondiff.Difference {
+func matchJSON(r *http.Request, expected interface{}) jsondiff.Difference {
+	expectedJson, _ := json.Marshal(expected)
+
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return jsondiff.NoMatch
 	}
 
 	options := jsondiff.DefaultJSONOptions()
-	diff, _ := jsondiff.Compare(body, []byte(expected), &options)
+	diff, _ := jsondiff.Compare(body, []byte(expectedJson), &options)
 
 	return diff
 }
@@ -33,7 +35,7 @@ func matchJSON(r *http.Request, expected string) jsondiff.Difference {
 // MatchJSONFull will compare the request body to the provided JSON string and ensure that the two are semantically
 // identical.
 // The order of keys in JSON objects is not important, but every value must be present.
-func MatchJSONFull(expected string) MatchRule {
+func MatchJSONFull(expected interface{}) MatchRule {
 	return MatchRuleFunc(func(r *http.Request) bool {
 		return matchJSON(r, expected) == jsondiff.FullMatch
 	})
@@ -48,7 +50,7 @@ func MatchJSONFull(expected string) MatchRule {
 // * Expected = {"a": 1, "b": {"c": 2}}
 //
 // As with MatchJSONFull, the order of keys is not important.
-func MatchJSONCompatible(expected string) MatchRule {
+func MatchJSONCompatible(expected interface{}) MatchRule {
 	return MatchRuleFunc(func(r *http.Request) bool {
 		match := matchJSON(r, expected)
 

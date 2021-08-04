@@ -158,7 +158,13 @@ func TestMatchJSONBodyFullIdentical(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONFull(`{"a": 1, "b": {"c": 2, "d": "e"}}`))
+	server.Matches(gomockserver.MatchJSONFull(map[string]interface{}{
+		"a": 1,
+		"b": map[string]interface{}{
+			"c": 2,
+			"d": "e",
+		},
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
@@ -179,7 +185,13 @@ func TestMatchJSONBodyFullReordered(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONFull(`{"b": {"d": "e", "c": 2}, "a": 1}`))
+	server.Matches(gomockserver.MatchJSONFull(map[string]interface{}{
+		"b": map[string]interface{}{
+			"d": "e",
+			"c": 2,
+		},
+		"a": 1,
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
@@ -200,7 +212,12 @@ func TestMatchJSONBodyFullMissingKey(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONFull(`{"b": {"d": "e", "c": 2}}`))
+	server.Matches(gomockserver.MatchJSONFull(map[string]interface{}{
+		"b": map[string]interface{}{
+			"c": 2,
+			"d": "e",
+		},
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
@@ -221,7 +238,13 @@ func TestMatchJSONBodyCompatibleIdentical(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONCompatible(`{"a": 1, "b": {"c": 2, "d": "e"}}`))
+	server.Matches(gomockserver.MatchJSONCompatible(map[string]interface{}{
+		"a": 1,
+		"b": map[string]interface{}{
+			"c": 2,
+			"d": "e",
+		},
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
@@ -242,7 +265,13 @@ func TestMatchJSONBodyCompatibleReordered(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONCompatible(`{"b": {"d": "e", "c": 2}, "a": 1}`))
+	server.Matches(gomockserver.MatchJSONCompatible(map[string]interface{}{
+		"b": map[string]interface{}{
+			"d": "e",
+			"c": 2,
+		},
+		"a": 1,
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
@@ -263,7 +292,12 @@ func TestMatchJSONBodyCompatibleMissingKey(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONCompatible(`{"b": {"d": "e", "c": 2}}`))
+	server.Matches(gomockserver.MatchJSONCompatible(map[string]interface{}{
+		"b": map[string]interface{}{
+			"c": 2,
+			"d": "e",
+		},
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"a": 1, "b": {"c": 2, "d": "e"}}`)))
@@ -284,7 +318,13 @@ func TestMatchJSONBodyCompatibleExtraKey(t *testing.T) {
 	server := gomockserver.New(t)
 	defer server.Close()
 
-	server.Matches(gomockserver.MatchJSONCompatible(`{"a": 1, "b": {"d": "e", "c": 2}}`))
+	server.Matches(gomockserver.MatchJSONCompatible(map[string]interface{}{
+		"a": 1,
+		"b": map[string]interface{}{
+			"c": 2,
+			"d": "e",
+		},
+	}))
 
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet, server.URL(),
 		bytes.NewReader([]byte(`{"b": {"c": 2, "d": "e"}}`)))

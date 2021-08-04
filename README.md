@@ -42,6 +42,8 @@ Standard rules that can be configured are:
 - `MatchJSONFull` - Matches the request body in full against a JSON document
 - `MatchJSONCompatible` - Ensures the request body is a superset of a given JSON document - i.e. additional fields in the request do not stop this from matching.
 
+Both `MathJSONFull` and `MatchJSONCompatible` take `interface{}`, and this will be marshalled into a JSON document before matching. This allows any Go constructs that marshal into JSON to be used - e.g., `map[string]interface{}` or your own custom structs.
+
 Additionally, you can write any custom match rule that you want as long as it fulfils the `MatchRule` interface. There is also a `MatchRuleFunc` function type that already implements the interface, so rules can be written as anonymous functions if desired.
 
 ### Responses
