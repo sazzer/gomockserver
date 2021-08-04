@@ -19,7 +19,10 @@ func ResponseJSON(data interface{}) ResponseBuilder {
 }
 
 func matchJSON(r *http.Request, expected interface{}) jsondiff.Difference {
-	expectedJson, _ := json.Marshal(expected)
+	expectedJSON, err := json.Marshal(expected)
+	if err != nil {
+		return jsondiff.NoMatch
+	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -27,7 +30,7 @@ func matchJSON(r *http.Request, expected interface{}) jsondiff.Difference {
 	}
 
 	options := jsondiff.DefaultJSONOptions()
-	diff, _ := jsondiff.Compare(body, []byte(expectedJson), &options)
+	diff, _ := jsondiff.Compare(body, expectedJSON, &options)
 
 	return diff
 }
