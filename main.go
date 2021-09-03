@@ -20,7 +20,7 @@ type Mock struct {
 	Response []ResponseBuilder
 }
 
-// Create a new Mock instance from an assortment of MatchRule and ResponseBuilder types.
+// NewMock will create a new Mock instance from an assortment of MatchRule and ResponseBuilder types.
 func NewMock(params ...interface{}) Mock {
 	matches := []MatchRule{}
 	response := []ResponseBuilder{}
