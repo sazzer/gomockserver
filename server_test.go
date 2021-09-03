@@ -483,3 +483,24 @@ func makeRequest(t *testing.T, method, url string) *http.Response {
 
 	return resp
 }
+
+func TestSimpleMock(t *testing.T) {
+	t.Parallel()
+	is := is.New(t)
+
+	server := gomockserver.New(t)
+	defer server.Close()
+
+	server.Mount(gomockserver.NewMock(gomockserver.MatchMethod("GET"),
+		gomockserver.MatchURLPath("/testing/abc"),
+		gomockserver.ResponseSetHeader("content-type", "application/json"),
+		gomockserver.ResponseAppendHeader("X-Test", "1"),
+		gomockserver.ResponseAppendHeader("X-Test", "2")))
+
+	resp := makeRequest(t, http.MethodGet, fmt.Sprintf("%s/testing/abc", server.URL()))
+	defer resp.Body.Close()
+
+	is.Equal(resp.StatusCode, http.StatusOK)
+	is.Equal(resp.Header.Get("content-type"), "application/json")
+	is.Equal(resp.Header.Values("X-Test"), []string{"1", "2"})
+}

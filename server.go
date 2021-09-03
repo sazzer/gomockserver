@@ -52,6 +52,17 @@ func (s *server) Matches(rules ...MatchRule) *Match {
 	return match
 }
 
+func (s *server) Mount(mock Mock) *Match {
+	match := &Match{
+		rules:     mock.Matches,
+		responses: mock.Response,
+	}
+
+	s.handler.matches = append(s.handler.matches, match)
+
+	return match
+}
+
 func (s *server) UnmatchedCount() int {
 	return s.handler.unmatchedCount
 }
