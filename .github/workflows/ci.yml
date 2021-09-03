@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        go_version: ["1.15", "1.16"]
+        go_version: ["1.16", "1.17"]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
